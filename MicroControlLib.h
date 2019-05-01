@@ -1,17 +1,20 @@
-/* 2019/05/01 MicroControlLib v0.1 by Robo Durden
+/* 2019/05/01 MicroControlLib v0.2 by Robo Durden
+
+copyright: GNU General Public License v3.0 = GNU GPLv3
 
 example code:
   #define _DEMO_ 1
   #include "MicroControlLib.h"
   // this is the data like you will use in your project
-  float aG[9] = {0,0,0,0,0,0,0,0,0};
-  float aS[2] = {1556474970,0};
-  SyncData oData = {1556474000,0,16.7,64.4,95.5,18.3,43.7,95.5,99,6.5,43.6,4};
+  float aGlobal[9] = {0,0,0,0,0,0,0,0,0};
+  float aSystem[2] = {1556474970,0};
+  SyncData oData = {1556474000,0,2.7,64.4,95.5,1.3,43.7,95.5,99,6.5,43.6,4.1};
+  
   void setup() {
     Serial.begin(115200);
     // now point the calcy data arrays to your true data
-    CalcyInit(  (float*)&oData+1,(float*)&aG,(float*)&aS);
-    String sCalc = "(v2>46.3)+(v10>3.0)=2~s1";
+    CalcyInit(  (float*)&oData+1,(float*)&aGlobal,(float*)&aSystem);
+    String sCalc = "(v2>46.3)+(v10>3.0)=2~s1";  // inside humidity > 46.3) AND (battery_voltage > 3.0) -> store in bit 1 of System array
     String sError;
     float fResult = Calc(sCalc,sError);
     if (sError.length())  Serial.println(sError);
@@ -21,12 +24,17 @@ example code:
 #define CALCY_DEBUG 1
 
 #ifdef CALCY_DEBUG
-  #define CEBUG(txt, val) Serial.print(txt); Serial.print(": "); Serial.print(val); Serial.print("\t"); 
-  #define CEBUGLN(txt, val) Serial.print(txt); Serial.print(": "); Serial.println(val)
+  int iCALCY_DEBUG_level = 0;
+  //#define CEBUGLN(txt, val) Serial.print(txt); Serial.print(": "); Serial.println(val);
+  #define CEBUGLN(txt, val){for (int i=iCALCY_DEBUG_level;i>0;i--){Serial.print("\t");}Serial.print(txt); Serial.print(": "); Serial.println(val);}
+  #define CEBUGLNU(txt, val){iCALCY_DEBUG_level++;for (int i=iCALCY_DEBUG_level;i>1;i--){Serial.print("\t");}Serial.print(txt); Serial.print(": "); Serial.println(val);}
+  #define CEBUGLND(txt, val){for (int i=iCALCY_DEBUG_level--;i>1;i--){Serial.print("\t");}Serial.print(txt); Serial.print(": "); Serial.println(val);}
+
 #endif
 #ifndef CALCY_DEBUG
-  #define CEBUG(txt, val)
   #define CEBUGLN(txt, val)
+  #define CEBUGLNU(txt, val)
+  #define CEBUGLND(txt, val)
 #endif
 
 
@@ -49,7 +57,7 @@ void SetArrayValue(char sType,int i, float f)
   case 'g': m_aGlobal[i] = f;  break;
   case 's': m_aSystem[i] = f;  break;
   }
-  CEBUGLN("\tSetArrayValue",String(sType)+","+String(i) + "," + String(f));
+  CEBUGLN("SetArrayValue "+String(sType)+","+String(i),String(f));
 }
 
 float GetArrayValue(char sType,int i)
@@ -57,7 +65,7 @@ float GetArrayValue(char sType,int i)
   switch(sType)
   {
   case 'v': 
-    CEBUGLN("\tGetArrayValue(v)",String(i)+") = "+String(m_aValue[i]));
+    CEBUGLN("GetArrayValue(v,"+String(i)+")",String(m_aValue[i]));
     return m_aValue[i];
   case 'g': return m_aGlobal[i];
   case 's': return m_aSystem[i];
@@ -68,6 +76,7 @@ float GetArrayValue(char sType,int i)
 typedef struct __attribute((__packed__))
 {
   char t;
+  int f;    // field if t!=0 a value/global/system field is returend
   int i;
   int  j;
   float  fRet;
@@ -99,9 +108,9 @@ Result NextNum(String s,int i, int j, String& sError)
       if (iOpen>0)
       {
         sError += s + " : syntax error too many '('\n";
-        return {0,i,j2,0};
+        return {0,0,i,j2,0};
       }
-      return {0,i,j2,Calc(s.substring(i,j2-1),sError)};
+      return {0,0,i,j2,Calc(s.substring(i,j2-1),sError)};
     }
     char cType = 0;  // expecting this to be a constant number
     int j2=--i;
@@ -109,11 +118,14 @@ Result NextNum(String s,int i, int j, String& sError)
     {
       switch(c)
       {
-      case '+': case '-': case '.':
+      case '+': case '-': 
+        if (j2>i) // we already parsed a number
+          return {0,0,i,j2,s.substring(i,j2).toFloat()};
+      case '.':
         if (cType)  // syntax error
         {
           sError += s + " : syntax error #2\n";
-          return {0,i,j2,0};
+          return {0,0,i,j2,0};
         }
       case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
         break;
@@ -121,11 +133,11 @@ Result NextNum(String s,int i, int j, String& sError)
         if (cType)
         {
           int iPos = s.substring(i,j2).toInt();
-          return {cType,i,j2,GetArrayValue(cType,iPos)};
+          return {cType,iPos,i,j2,GetArrayValue(cType,iPos)};
         }
         if (j2>i) // we already parsed a number
         {
-          return {0,i,j2,s.substring(i,j2).toFloat()};
+          return {0,0,i,j2,s.substring(i,j2).toFloat()};
         }
         cType = c;  // seems to be something linke "v1"
         i++;
@@ -133,13 +145,18 @@ Result NextNum(String s,int i, int j, String& sError)
       j2++;
       c = s.charAt(j2);
     }
-    return {cType,i,j2,s.substring(i,j2).toFloat()};
+    if (cType)
+    {
+        int iPos = s.substring(i,j2).toInt();
+        return {cType,iPos,i,j2,GetArrayValue(cType,iPos)};
+    }
+    return {cType,0,i,j2,s.substring(i,j2).toFloat()};
   }
 }
 
 float Calc(String s, String& sError)
 {
-  CEBUGLN("Calc()",s);
+  CEBUGLNU("Calc()",s);
   int iLen = s.length();
   Result o1 = NextNum(s,0,iLen,sError);
   float f = 0;
@@ -155,15 +172,29 @@ float Calc(String s, String& sError)
     case '=': f = (o1.fRet == o2.fRet) ? 1 : 0; break;
     case '+': f = o1.fRet + o2.fRet;  break;
     case '-': f = o1.fRet + o2.fRet;  break;
+    case '*': f = o1.fRet * o2.fRet;  break;
+    case '/': 
+      if (o2.fRet == 0)
+      {
+        sError += s + " : division by zero " + String(o2.t)+String(o2.f)+"\n";
+        return 0;
+      }
+      f = o1.fRet / o2.fRet;  
+      break;
+    case '|': f = (uint16_t)o1.fRet | (uint16_t)o2.fRet;  break;
+    case '&': f = (uint16_t)o1.fRet & (uint16_t)o2.fRet;  break;
     case '~': 
     {
       if (!o2.t)  // syntax error: can not set o1.f to a constant variable
+      {
+        sError += s + " : can not set " + String(o1.t)+String(o1.fRet)+" to constant.\n";
         return 0;
-      f = o1.fRet;
-      SetArrayValue(o2.t,(int)o2.fRet,f);
+      }
+      SetArrayValue(o2.t,(int)o2.f,o1.fRet);
       break;
     }
     default:  // unkown operator
+      sError += s + " : unkown operator '"+sOp+"'\n";
       return 0;
     }
     if (o2.j >= iLen)
@@ -171,7 +202,7 @@ float Calc(String s, String& sError)
     //o1 = {"t":0,"i":o2.i,"j":o2.j,"fRet":f};
     o1.t=0; o1.i=o2.i; o1.j=o2.j; o1.fRet=f; 
   }
-  CEBUG("Calc()", s + "\treturning:" + String(f));
+  CEBUGLND("returning",String(f));
   return f;
 }
 
