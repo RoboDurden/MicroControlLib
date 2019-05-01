@@ -1,6 +1,7 @@
-/* 2019/05/01 MicroControlLib v0.2 by Robo Durden
-
-copyright: GNU General Public License v3.0 = GNU GPLv3
+/* 
+  https://github.com/RoboDurden/MicroControlLib
+  copyright: GNU General Public License v3.0 = GNU GPLv3
+  2019/05/01 MicroControlLib v0.2 by Robo Durden
 
 example code:
   #define _DEMO_ 1
