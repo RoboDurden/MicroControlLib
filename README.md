@@ -3,7 +3,7 @@ An Arduino / Javascript micro control language: "(v2>46.3)+(v10>3.0)=2~s1" -> co
 
 .ino example includes multiple calculations like "(v2>46.3)+(v10>3.5)=2~s1;v1<3.0*2|s1~s1;v10<3.0*4|s1~s1"
 
-calculation is down from left to right !  
+calculation is done from left to right !  
 '~' has the meaning of '=:' and asigns the left value to the right variable
 
 the calculation operates on three float arrays:  
