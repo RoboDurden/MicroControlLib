@@ -23,3 +23,4 @@ execute the calculation with:
   
 copyright: GNU General Public License v3.0 = GNU GPLv3
 
+PLEASE report bugs :-)
