@@ -1,0 +1,152 @@
+<html>
+<body>
+<div id=demo></div>
+<script>
+
+var aValue; 	// the array of values
+var aGlobal;		// the array of global variables
+var aSystem;		// the array of system variables, 
+//				some readonly like time, some writeonly like output bits
+
+function GetTypeArray(sType)
+{
+	switch(sType)
+	{
+	case "v":	return aValue;
+	case "g":	return aGlobal;
+	case "s":	return aSystem;
+	}
+	return 0;	
+}
+	
+function Calc(s)
+{
+	var iLen = s.length;
+	var o1 = NextNum(s,0,iLen);
+	while(1)
+	{
+		var sOp = s.charAt(o1.j);
+		var o2 = NextNum(s,o1.j+1,iLen);
+		var f = 0;
+		switch(sOp)
+		{
+		case ">":	f = (o1.fRet > o2.fRet) ? 1 : 0;	break;
+		case "<":	f = (o1.fRet < o2.fRet) ? 1 : 0;	break;
+		case "=":	f = (o1.fRet == o2.fRet) ? 1 : 0;	break;
+		case "+":	f = o1.fRet + o2.fRet;	break;
+		case "-":	f = o1.fRet + o2.fRet;	break;
+		case "~":	
+			if (!o2.t)	// syntax error: can not set o1.f to a constant variable
+				return 0;
+			var a = GetTypeArray(o2.t);
+			a[o2.fRet] = f = o1.fRet;
+			break;
+		default:	// unkown operator
+			return 0;
+		}
+		if (o2.j >= iLen)
+			break;
+		o1 = {"t":0,"i":o2.i,"j":o2.j,"fRet":f};
+	}
+	return f;
+}
+
+function NextNum(s,i,j)
+{
+	//return 0;
+	while(i<j)
+	{
+		var c = s.charAt(i++);
+		if (c == "(")
+		{
+			var iOpen = 1;
+			var j2=i;
+			while(j2<j)
+			{
+				var c = s.charAt(j2++);
+				if (c == "(")
+				{
+					iOpen++;
+				}	
+				if (c == ")")
+				{
+					iOpen--;
+					break;
+				}	
+			}
+			if (iOpen>0)	
+				return 0;
+			return {"t":0,"i":i,"j":j2,"fRet":Calc(s.substr(i,j2-i-1))};
+		}
+		var cType = 0;	// expecting this to be a constant number
+		var j2=--i;
+		while(j2<j)
+		{
+			switch(c)
+			{
+			case "+":
+			case "-":
+			case ".":
+				if (cType)	// syntax error
+					return 0;
+			case "0":
+			case "1":
+			case "2":
+			case "3":
+			case "4":
+			case "5":
+			case "6":
+			case "7":
+			case "8":
+			case "9":
+				break;
+			default: 
+				if (cType)
+				{
+					var iPos = s.substr(i,j2-i);
+					var a = GetTypeArray(cType);
+					var f=a[iPos];
+					return {"t":cType,"i":i,"j":j2,"fRet":f};
+				}
+				if (j2>i)	// we already parsed a number
+				{
+					return {"t":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
+				}
+				cType = c;	// seems to be something linke "v1"
+				i++;
+			}
+			c = s.charAt(++j2);
+		}
+		return {"t":cType,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
+	}
+}	
+
+aValue = [0,16.7,64.4,95.5,18.3,43.7,95.5,99,6.5,43.6,4];
+aGlobal = [0,0,0,0,0,0,0,0,0];
+aSystem = [1556474970,0];
+
+function Demo(sFormula)
+{
+	sCalc = sFormula.replace("=:","~");
+	var sRes = Calc(sCalc);
+	var s = "v? = "+aValue.join(" , ") + " (sensor data)<br>"
+		+"g? = "+aGlobal.join(" , ") + " (global variables)<br>"
+		+"s? = "+aSystem.join(" , ") + " (system variable like time or outupt-pins)<br>"
+		+"calculate " + sFormula + "<br>"
+		+"result: " + sRes + "<br>"
+		+"<form onSubmit='return Demo(this.s.value,this)'>next: <input id=s name=s value='"+sFormula+"' size=50><input type=submit value='calculate'></form><br>";
+	var r = document.getElementById("demo");
+	if (r)
+	{
+		r.innerHTML = s;
+		document.getElementById("s").focus();		
+	}
+		
+	return false;
+}
+
+Demo("(v2>46.3)+(v10>3.0)=2=:s1");
+
+</script>
+</body>
+</html>
