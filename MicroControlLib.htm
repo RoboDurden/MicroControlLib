@@ -1,3 +1,8 @@
+<!--  
+	https://github.com/RoboDurden/MicroControlLib
+	2019/05/01 MicroControlLib v0.1 by Robo Durden 
+	copyright: GNU General Public License v3.0 = GNU GPLv3
+-->
 <html>
 <body>
 <div id=demo></div>
@@ -35,11 +40,15 @@ function Calc(s)
 		case "=":	f = (o1.fRet == o2.fRet) ? 1 : 0;	break;
 		case "+":	f = o1.fRet + o2.fRet;	break;
 		case "-":	f = o1.fRet + o2.fRet;	break;
+		case "*":	f = o1.fRet * o2.fRet;	break;
+		case "/":	f = o1.fRet / o2.fRet;	break;
+		case "|":	f = o1.fRet | o2.fRet;	break;
+		case "&":	f = o1.fRet & o2.fRet;	break;
 		case "~":	
 			if (!o2.t)	// syntax error: can not set o1.f to a constant variable
 				return 0;
 			var a = GetTypeArray(o2.t);
-			a[o2.fRet] = f = o1.fRet;
+			a[o2.f] = f = o1.fRet;
 			break;
 		default:	// unkown operator
 			return 0;
@@ -76,7 +85,7 @@ function NextNum(s,i,j)
 			}
 			if (iOpen>0)	
 				return 0;
-			return {"t":0,"i":i,"j":j2,"fRet":Calc(s.substr(i,j2-i-1))};
+			return {"t":0,"f":0,"i":i,"j":j2,"fRet":Calc(s.substr(i,j2-i-1))};
 		}
 		var cType = 0;	// expecting this to be a constant number
 		var j2=--i;
@@ -86,6 +95,8 @@ function NextNum(s,i,j)
 			{
 			case "+":
 			case "-":
+				if (j2>i)	// we already parsed a number
+					return {"t":0,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
 			case ".":
 				if (cType)	// syntax error
 					return 0;
@@ -106,18 +117,23 @@ function NextNum(s,i,j)
 					var iPos = s.substr(i,j2-i);
 					var a = GetTypeArray(cType);
 					var f=a[iPos];
-					return {"t":cType,"i":i,"j":j2,"fRet":f};
+					return {"t":cType,"f":iPos,"i":i,"j":j2,"fRet":f};
 				}
 				if (j2>i)	// we already parsed a number
-				{
-					return {"t":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
-				}
+					return {"t":0,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
 				cType = c;	// seems to be something linke "v1"
 				i++;
 			}
 			c = s.charAt(++j2);
 		}
-		return {"t":cType,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
+		if (cType)
+		{
+			var iPos = s.substr(i,j2-i);
+			var a = GetTypeArray(cType);
+			var f=a[iPos];
+			return {"t":cType,"f":iPos,"i":i,"j":j2,"fRet":f};			
+		}
+		return {"t":cType,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
 	}
 }	
 
