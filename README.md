@@ -30,6 +30,11 @@ execute a calculation with:
 
         float fResult = Calc(sCalc,sError);
 
+then forumlas would read like:
+
+    dE1+dE2+dE3/3=:g0
+    (dE1/g0<0.5) | (dE2/g0<0.5) | (dE3/g0<0.5) & (g0>10) =:s1
+
 
 copyright: GNU General Public License v3.0 = GNU GPLv3
 
