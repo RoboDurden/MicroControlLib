@@ -16,11 +16,24 @@ point these data arrays to your true data with
 
     void CalcyInit(float* aV,float* aG,float* aS);
 
-execute the calculation with:  
+you can pre-process the forumulas:
 
-    float fResult = Calc(sCalc,sError);
+    var sCalc = sFormula.replaceAll(" ","").replaceAll("=:","~").replaceAll("\n",";");
+    for(var i=aName.length-1; i>=0; i--)  sCalc = sCalc.replaceAll(aName[i],"v"+i);
+    var aCalc = sCalc.split(";");
+    for (var i in aCalc)
+    {
+        sCalc = aCalc[i];
+    
 
-  
+execute a calculation with:  
+
+        float fResult = Calc(sCalc,sError);
+
+
 copyright: GNU General Public License v3.0 = GNU GPLv3
 
 PLEASE report bugs :-)
+
+# todo:
+bug fix 2019/06/21 only in .htm !
