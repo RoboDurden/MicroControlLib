@@ -1,7 +1,20 @@
 <!--  
 	https://github.com/RoboDurden/MicroControlLib
-	2019/05/01 MicroControlLib v0.1 by Robo Durden 
+	2019/06/21 MicroControlLib v0.2 by Robo Durden 
 	copyright: GNU General Public License v3.0 = GNU GPLv3
+	
+	bug fix 2019/06/21:
+
+fertig:
+		while(j2<j)
+...	
+			case "-":
+				if (j2>i)	// we already parsed a number
+					if (cType)	// we already parsed a param
+						break fertig;
+					else
+						return {"t":0,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
+	
 -->
 <html>
 <body>
@@ -89,6 +102,7 @@ function NextNum(s,i,j)
 		}
 		var cType = 0;	// expecting this to be a constant number
 		var j2=--i;
+fertig:
 		while(j2<j)
 		{
 			switch(c)
@@ -96,7 +110,10 @@ function NextNum(s,i,j)
 			case "+":
 			case "-":
 				if (j2>i)	// we already parsed a number
-					return {"t":0,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
+					if (cType)	// we already parsed a param
+						break fertig;
+					else
+						return {"t":0,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
 			case ".":
 				if (cType)	// syntax error
 					return 0;
@@ -120,7 +137,7 @@ function NextNum(s,i,j)
 					return {"t":cType,"f":iPos,"i":i,"j":j2,"fRet":f};
 				}
 				if (j2>i)	// we already parsed a number
-					return {"t":0,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
+					return {"t":0,"f":0,"i":i,"j":j2,"fRet":1*s.substr(i,j2-i)};
 				cType = c;	// seems to be something linke "v1"
 				i++;
 			}
@@ -133,24 +150,53 @@ function NextNum(s,i,j)
 			var f=a[iPos];
 			return {"t":cType,"f":iPos,"i":i,"j":j2,"fRet":f};			
 		}
-		return {"t":cType,"f":0,"i":i,"j":j2,"fRet":s.substr(i,j2-i)};
+		return {"t":cType,"f":0,"i":i,"j":j2,"fRet":1*s.substr(i,j2-i)};
 	}
 }	
 
-aValue = [0,16.7,64.4,95.5,18.3,43.7,95.5,99,6.5,43.6,4];
+aName = ["data","P1","P2","P3","E1","E2","E3","dP1","dP2","dP3","dE1","dE2","dE3"];
+//aValue = [0,16.7,64.4,95.5,18.3,43.7,95.5,99,6.5,43.6,4];
+aValue = [100,4.6,4.6,4.6,102857.5,102902.2,103541.9,1.6,1.6,1.5,24.8,24.6,2.5];
 aGlobal = [0,0,0,0,0,0,0,0,0];
 aSystem = [1556474970,0];
 
-function Demo(sFormula)
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
+function Demo(sFormula,rForm)
 {
-	sCalc = sFormula.replace("=:","~");
-	var sRes = Calc(sCalc);
-	var s = "v? = "+aValue.join(" , ") + " (sensor data)<br>"
+	if (rForm)
+	{
+		aName = rForm.n.value.split(",");
+		aValue = rForm.v.value.split(",");
+		for (var i in aValue)	aValue[i] = 1*aValue[i];
+	}
+
+	var sCalc = sFormula.replaceAll(" ","");
+	sCalc = sCalc.replaceAll("=:","~").replaceAll("\n",";");
+	for(var i=aName.length-1; i>=0; i--)
+		sCalc = sCalc.replaceAll(aName[i],"v"+i);
+
+	var aCalc = sCalc.split(";");
+	
+	var s = "<form onSubmit='return Demo(this.s.value,this)'>" 
+		+ "n? = <input name='n' style='width:80%' value='"+aName.join(",") + "'/> (names)<br>"
+		+"v? = <input name='v' style='width:80%' value='"+aValue.join(",") + "'/> (sensor data)<br>"
 		+"g? = "+aGlobal.join(" , ") + " (global variables)<br>"
-		+"s? = "+aSystem.join(" , ") + " (system variable like time or outupt-pins)<br>"
-		+"calculate " + sFormula + "<br>"
-		+"result: " + sRes + "<br>"
-		+"<form onSubmit='return Demo(this.s.value,this)'>next: <input id=s name=s value='"+sFormula+"' size=50><input type=submit value='calculate'></form><br>";
+		+"s? = "+aSystem.join(" , ") + " (system variable like time or outupt-pins)<br><hr>";
+	
+	for (var i in aCalc)
+	{
+		sCalc = aCalc[i];
+		var sRes = Calc(sCalc);
+		s += i + ": calculate " + sCalc + " &rarr; " + sRes + "<br>"
+			+"&nbsp;&nbsp;g? = "+aGlobal.join(" , ") + " (global variables)<br>"
+			+"&nbsp;&nbsp;s? = "+aSystem.join(" , ") + " (system variables)<hr>";
+	}
+		
+	s += "<br>next: <textarea id=s name=s style='width:70%' rows=3 >"+sFormula+"</textarea><input type=submit value='calculate'></form><br>";
 	var r = document.getElementById("demo");
 	if (r)
 	{
@@ -161,7 +207,8 @@ function Demo(sFormula)
 	return false;
 }
 
-Demo("(v2>46.3)+(v10>3.0)=2=:s1");
+Demo("dE1+dE2+dE3/3=:g0\n(dE1/g0<0.5) | (dE2/g0<0.5) | (dE3/g0<0.5) & (g0>10) =:s1");
+//Demo("(v2>46.3)+(v10>3.0)=2=:s1");
 
 </script>
 </body>
