@@ -39,9 +39,3 @@ then forumlas would read like:
 copyright: GNU General Public License v3.0 = GNU GPLv3
 
 PLEASE report bugs :-)
-
-# todo:
-bug fix 2019/06/21 only in .htm !
-
-# upcoming:
-php port for server side control :-)
