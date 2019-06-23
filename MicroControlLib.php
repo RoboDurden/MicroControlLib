@@ -24,7 +24,7 @@ class CMicroControlLib
 	{
 		if (isset($_GET['debugMCL']))
 			print str_replace(" ","&nbsp;",$s)."<br/>\n";
-	}	
+	}
 	
 	function _Error($sErr)
 	{
