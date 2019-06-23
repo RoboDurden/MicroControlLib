@@ -1,4 +1,5 @@
 /* 
+
   https://github.com/RoboDurden/MicroControlLib
   copyright: GNU General Public License v3.0 = GNU GPLv3
   2019/05/01 MicroControlLib v0.2 by Robo Durden
@@ -121,7 +122,14 @@ Result NextNum(String s,int i, int j, String& sError)
       {
       case '+': case '-': 
         if (j2>i) // we already parsed a number
-          return {0,0,i,j2,s.substring(i,j2).toFloat()};
+        {
+            if (cType)  // we already parsed a param
+            {
+              int iPos = s.substring(i,j2).toInt();
+              return {cType,iPos,i,j2,GetArrayValue(cType,iPos)};
+            }
+            return {0,0,i,j2,s.substring(i,j2).toFloat()};
+        }
       case '.':
         if (cType)  // syntax error
         {
