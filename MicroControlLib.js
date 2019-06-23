@@ -33,7 +33,6 @@ function CMicroControlLib(aValue,aGlobal,aSystem)
 		return 0;
 	}}
 
-
 	this.Init = function Init(aValue,aGlobal,aSystem)
 	{
 		this.aValue = aValue;
