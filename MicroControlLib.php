@@ -1,8 +1,11 @@
 <?php
 /*
 	https://github.com/RoboDurden/MicroControlLib
-	2019/06/23 MicroControlLib v0.2 by Robo Durden 
+	2019/06/23 MicroControlLib v0.21 by Robo Durden 
 	copyright: GNU General Public License v3.0 = GNU GPLv3
+	
+	bug fix 2019/07/17
+			case "-":	$f = $o1->fRet - $o2->fRet;	break;
 */
 
 class CMicroControlLib
@@ -63,7 +66,7 @@ class CMicroControlLib
 			case "<":	$f = ($o1->fRet < $o2->fRet) ? 1 : 0;	break;
 			case "=":	$f = ($o1->fRet == $o2->fRet) ? 1 : 0;	break;
 			case "+":	$f = $o1->fRet + $o2->fRet;	break;
-			case "-":	$f = $o1->fRet + $o2->fRet;	break;
+			case "-":	$f = $o1->fRet - $o2->fRet;	break;
 			case "*":	$f = $o1->fRet * $o2->fRet;	break;
 			case "/":	
 				if (!$o2->fRet)
