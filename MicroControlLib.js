@@ -4,7 +4,6 @@
 	copyright: GNU General Public License v3.0 = GNU GPLv3
 	bug fix 2019/07/17
 			case "-":	f = o1.fRet - o2.fRet;	break;
-		
 	bug fix 2019/06/21:
 fertig:
 		while(j2<j)
