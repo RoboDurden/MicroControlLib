@@ -1,8 +1,10 @@
 /*
 	https://github.com/RoboDurden/MicroControlLib
-	2019/06/21 MicroControlLib v0.2 by Robo Durden 
+	2019/06/21 MicroControlLib v0.21 by Robo Durden 
 	copyright: GNU General Public License v3.0 = GNU GPLv3
-	
+	bug fix 2019/07/17
+			case "-":	f = o1.fRet - o2.fRet;	break;
+		
 	bug fix 2019/06/21:
 fertig:
 		while(j2<j)
@@ -65,7 +67,7 @@ function CMicroControlLib(aValue,aGlobal,aSystem)
 			case "<":	f = (o1.fRet < o2.fRet) ? 1 : 0;	break;
 			case "=":	f = (o1.fRet == o2.fRet) ? 1 : 0;	break;
 			case "+":	f = o1.fRet + o2.fRet;	break;
-			case "-":	f = o1.fRet + o2.fRet;	break;
+			case "-":	f = o1.fRet - o2.fRet;	break;
 			case "*":	f = o1.fRet * o2.fRet;	break;
 			case "/":
 					if (!o2.fRet)	return _Error('division by zero');
