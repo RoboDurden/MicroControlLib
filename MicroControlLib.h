@@ -2,7 +2,10 @@
 
   https://github.com/RoboDurden/MicroControlLib
   copyright: GNU General Public License v3.0 = GNU GPLv3
-  2019/05/01 MicroControlLib v0.2 by Robo Durden
+  2019/05/01 MicroControlLib v0.21 by Robo Durden
+
+  bug fix 2019/07/17
+    case '-': f = o1.fRet - o2.fRet;  break;
 
 example code:
   #define _DEMO_ 1
@@ -180,7 +183,7 @@ float Calc(String s, String& sError)
     case '<': f = (o1.fRet < o2.fRet) ? 1 : 0;  break;
     case '=': f = (o1.fRet == o2.fRet) ? 1 : 0; break;
     case '+': f = o1.fRet + o2.fRet;  break;
-    case '-': f = o1.fRet + o2.fRet;  break;
+    case '-': f = o1.fRet - o2.fRet;  break;
     case '*': f = o1.fRet * o2.fRet;  break;
     case '/': 
       if (o2.fRet == 0)
