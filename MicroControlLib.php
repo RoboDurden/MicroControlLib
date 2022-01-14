@@ -56,7 +56,7 @@ class CMicroControlLib
 		$o1 = $this->_NextNum($s,0,$iLen);
 		while(1)
 		{
-			$sOp = $s{$o1->j};	// charAt
+			$sOp = $s[$o1->j];	// charAt
 			$o2 = $this->_NextNum($s,$o1->j +1,$iLen);
 			$f = 0;
 			$this->_Debug($sOp.' o1:'.print_r($o1,true).'o2:'.print_r($o2,true));
@@ -98,7 +98,7 @@ class CMicroControlLib
 		//return 0;
 		while($i<$j)
 		{
-			$c = $s{$i++};	// charAt
+			$c = $s[$i++];	// charAt
 			//$this->_Debug("$i,$j -> '$c'");
 			if ($c == "(")
 			{
@@ -106,7 +106,7 @@ class CMicroControlLib
 				$j2=$i;
 				while($j2<$j)
 				{
-					$c = $s{$j2++};	// charAt
+					$c = $s[$j2++];	// charAt
 					if ($c == "(")
 					{
 						$iOpen++;
@@ -162,7 +162,7 @@ class CMicroControlLib
 					$cType = $c;	// seems to be something linke "v1"
 					$i++;
 				}
-				$c = $s{++$j2};	// charAt
+				$c = $s[++$j2];	// charAt
 			}
 			if ($cType)
 			{
